@@ -10,4 +10,4 @@ jobs:
       - name: Get repo code
         uses: actions/checkout@v4 
       - name: Do everything I need
-        run: ls -la && cat /etc/os-release && ls -la cicd-practice
+        run: ls -la && cat /etc/os-release
