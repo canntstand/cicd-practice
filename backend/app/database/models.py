@@ -1,18 +1,8 @@
-from sqlalchemy import (
-    Column,
-    DateTime,
-    Integer,
-    String,
-    ARRAY,
-    Boolean,
-    ForeignKey,
-    CheckConstraint,
-)
+from sqlalchemy import Column, DateTime, Integer, String, ARRAY, Boolean, ForeignKey, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
-
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -24,8 +14,7 @@ class Task(Base):
     owner = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     is_completed = Column(Boolean, default=False)
     priority = Column(Integer, default=0)
-    __table_args__ = (CheckConstraint("priority >= 0", name="priority_positive"),)
-
+    __table_args__ = (CheckConstraint('priority >= 0', name='priority_positive'),)
 
 class RecurringTask(Base):
     __tablename__ = "recur_tasks"
@@ -38,8 +27,7 @@ class RecurringTask(Base):
     is_completed = Column(Boolean, default=False)
     priority = Column(Integer, default=0)
     days = Column(ARRAY(String), nullable=False)
-    __table_args__ = (CheckConstraint("priority >= 0", name="priority_positive"),)
-
+    __table_args__ = (CheckConstraint('priority >= 0', name='priority_positive'),)
 
 class User(Base):
     __tablename__ = "users"
@@ -48,7 +36,6 @@ class User(Base):
     email = Column(String, nullable=True)
     password = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
 
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"

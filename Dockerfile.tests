@@ -1,6 +1,6 @@
 FROM python:3.13.5-slim-bookworm
 
-LABEL owner="person"
+LABEL owner="r0maf"
 
 WORKDIR /test
 

@@ -1,7 +1,7 @@
 from ..utils.exc import db_exc_check
 from ..database import models
 from sqlalchemy import delete, select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from typing import Optional
 from ..validation import schemas
 import datetime
@@ -18,10 +18,10 @@ TASK_FIELDS = [
 
 
 @db_exc_check
-async def complete_uncomplete_recur_task(
-    user_task_id: int, user_id: int, db: AsyncSession
+def complete_uncomplete_recur_task(
+    user_task_id: int, user_id: int, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
-    task = await db.execute(
+    task = db.execute(
         select(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,
             models.RecurringTask.owner == user_id,
@@ -32,7 +32,7 @@ async def complete_uncomplete_recur_task(
         return None
 
     resp = (
-        await db.execute(
+        db.execute(
             update(models.RecurringTask)
             .where(
                 models.RecurringTask.user_task_id == user_task_id,
@@ -45,17 +45,17 @@ async def complete_uncomplete_recur_task(
         .first()
     )
 
-    await db.commit()
+    db.commit()
     return schemas.RecurTaskOut.model_validate(resp)
 
 
 @db_exc_check
-async def create_recur_task(
-    body: schemas.RecurTaskWithOwner, db: AsyncSession
+def create_recur_task(
+    body: schemas.RecurTaskWithOwner, db: Session
 ) -> schemas.RecurTaskOut:
     body = body.model_dump()
     body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
-    last_task = await db.execute(
+    last_task = db.execute(
         select(models.RecurringTask.user_task_id)
         .where(models.RecurringTask.owner == body["owner"])
         .order_by(models.RecurringTask.user_task_id.desc())
@@ -66,16 +66,16 @@ async def create_recur_task(
     body["user_task_id"] = user_task_id
 
     task = models.RecurringTask(**body)
-    await db.add(task)
-    await db.commit()
-    await db.refresh(task)
+    db.add(task)
+    db.commit()
+    db.refresh(task)
     return schemas.RecurTaskOut.model_validate(task)
 
 
 @db_exc_check
-async def get_recur_tasks(user_id: int, db: AsyncSession) -> list[schemas.RecurTaskOut]:
+def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
     tasks = (
-        await db.execute(
+        db.execute(
             select(models.RecurringTask).where(models.RecurringTask.owner == user_id)
         )
         .scalars()
@@ -85,11 +85,11 @@ async def get_recur_tasks(user_id: int, db: AsyncSession) -> list[schemas.RecurT
 
 
 @db_exc_check
-async def get_recur_task(
-    user_id: int, user_task_id: int, db: AsyncSession
+def get_recur_task(
+    user_id: int, user_task_id: int, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
     task = (
-        await db.execute(
+        db.execute(
             select(*TASK_FIELDS).where(
                 models.RecurringTask.user_task_id == user_task_id,
                 models.RecurringTask.owner == user_id,
@@ -106,10 +106,10 @@ async def get_recur_task(
 
 
 @db_exc_check
-async def update_recur_task(
-    user_task_id: int, body: schemas.RecurTaskWithOwnerUpdate, db: AsyncSession
+def update_recur_task(
+    user_task_id: int, body: schemas.RecurTaskWithOwnerUpdate, db: Session
 ) -> Optional[schemas.RecurTaskOut]:
-    task = await db.execute(
+    task = db.execute(
         select(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,
             models.RecurringTask.owner == body.owner,
@@ -121,9 +121,10 @@ async def update_recur_task(
 
     body = body.model_dump()
     body = {key: value for key, value in body.items() if value is not None}
-
+        
+    
     task = (
-        await db.execute(
+        db.execute(
             update(models.RecurringTask)
             .where(
                 models.RecurringTask.user_task_id == user_task_id,
@@ -137,19 +138,19 @@ async def update_recur_task(
     )
 
     if task:
-        await db.commit()
+        db.commit()
         return schemas.RecurTaskOut.model_validate(task)
 
     return None
 
 
 @db_exc_check
-async def delete_recur_task(user_id: int, user_task_id: int, db: AsyncSession) -> bool:
-    deleted = await db.execute(
+def delete_recur_task(user_id: int, user_task_id: int, db: Session) -> bool:
+    deleted = db.execute(
         delete(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,
             models.RecurringTask.owner == user_id,
         )
-    )
-    await db.commit()
-    return deleted.rowcount > 0
+    ).rowcount
+    db.commit()
+    return deleted > 0

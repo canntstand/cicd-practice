@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
-from .routers import pages, profile, recurring_tasks, tasks, auth
+from .routers import profile, recurring_tasks, tasks, auth, frontend
 
 app = FastAPI(docs_url=None, redoc_url=None)
 # app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
@@ -45,4 +45,4 @@ app.include_router(profile.router)
 app.include_router(auth.router)
 app.include_router(recurring_tasks.router)
 app.include_router(tasks.router)
-app.include_router(pages.router)
+app.include_router(frontend.router)

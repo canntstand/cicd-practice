@@ -2,7 +2,7 @@ from ..utils.exc import db_exc_check
 from ..database import models
 from sqlalchemy import delete, select, update
 from typing import Optional
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from ..validation import schemas
 import datetime
 
@@ -17,20 +17,23 @@ TASK_FIELDS = [
 
 
 @db_exc_check
-async def complete_uncomplete_task(
-    user_task_id: int, user_id: int, db: AsyncSession
+def complete_uncomplete_task(
+    user_task_id: int, user_id: int, db: Session
 ) -> Optional[schemas.TaskOut]:
-    task = await db.execute(
-        select(models.Task).where(
-            models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+    task = (
+        db.execute(
+            select(models.Task).where(
+                models.Task.user_task_id == user_task_id, models.Task.owner == user_id
+            )
         )
-    ).scalar_one_or_none()
+        .scalar_one_or_none()
+    )
 
     if task is None:
         return None
 
     resp = (
-        await db.execute(
+        db.execute(
             update(models.Task)
             .where(
                 models.Task.user_task_id == user_task_id, models.Task.owner == user_id
@@ -42,17 +45,17 @@ async def complete_uncomplete_task(
         .first()
     )
 
-    await db.commit()
+    db.commit()
     return schemas.TaskOut.model_validate(resp)
 
 
 @db_exc_check
-async def create_task(body: schemas.TaskWithOwner, db: AsyncSession) -> schemas.TaskOut:
+def create_task(body: schemas.TaskWithOwner, db: Session) -> schemas.TaskOut:
     body = body.model_dump()
     body["created_at"] = datetime.datetime.now(datetime.timezone.utc)
 
     # Get the last task for this user
-    last_task = await db.execute(
+    last_task = db.execute(
         select(models.Task.user_task_id)
         .where(models.Task.owner == body["owner"])
         .order_by(models.Task.user_task_id.desc())
@@ -63,16 +66,16 @@ async def create_task(body: schemas.TaskWithOwner, db: AsyncSession) -> schemas.
     body["user_task_id"] = user_task_id
 
     task = models.Task(**body)
-    await db.add(task)
-    await db.commit()
-    await db.refresh(task)
+    db.add(task)
+    db.commit()
+    db.refresh(task)
     return schemas.TaskOut.model_validate(task)
 
 
 @db_exc_check
-async def get_tasks(user_id: int, db: AsyncSession) -> list[schemas.TaskOut]:
+def get_tasks(user_id: int, db: Session) -> list[schemas.TaskOut]:
     tasks = (
-        await db.execute(select(models.Task).where(models.Task.owner == user_id))
+        db.execute(select(models.Task).where(models.Task.owner == user_id))
         .scalars()
         .all()
     )
@@ -80,11 +83,9 @@ async def get_tasks(user_id: int, db: AsyncSession) -> list[schemas.TaskOut]:
 
 
 @db_exc_check
-async def get_task(
-    user_id: int, user_task_id: int, db: AsyncSession
-) -> Optional[schemas.TaskOut]:
+def get_task(user_id: int, user_task_id: int, db: Session) -> Optional[schemas.TaskOut]:
     task = (
-        await db.execute(
+        db.execute(
             select(*TASK_FIELDS).where(
                 models.Task.user_task_id == user_task_id, models.Task.owner == user_id
             )
@@ -100,10 +101,10 @@ async def get_task(
 
 
 @db_exc_check
-async def update_task(
-    user_task_id: int, body: schemas.TaskWithOwnerUpdate, db: AsyncSession
+def update_task(
+    user_task_id: int, body: schemas.TaskWithOwnerUpdate, db: Session
 ) -> Optional[schemas.TaskOut]:
-    task = await db.execute(
+    task = db.execute(
         select(models.Task).where(
             models.Task.user_task_id == user_task_id,
             models.Task.owner == body.owner,
@@ -114,7 +115,7 @@ async def update_task(
     body = {key: value for key, value in body.items() if value is not None}
 
     task = (
-        await db.execute(
+        db.execute(
             update(models.Task)
             .where(
                 models.Task.user_task_id == user_task_id,
@@ -128,19 +129,19 @@ async def update_task(
     )
 
     if task:
-        await db.commit()
+        db.commit()
         return schemas.TaskOut.model_validate(task)
 
     return None
 
 
 @db_exc_check
-async def delete_task(user_id: int, user_task_id: int, db: AsyncSession) -> bool:
-    deleted = await db.execute(
+def delete_task(user_id: int, user_task_id: int, db: Session) -> bool:
+    deleted = db.execute(
         delete(models.Task).where(
             models.Task.user_task_id == user_task_id,
             models.Task.owner == user_id,
         )
-    )
-    await db.commit()
-    return deleted.rowcount > 0
+    ).rowcount
+    db.commit()
+    return deleted > 0

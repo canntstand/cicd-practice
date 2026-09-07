@@ -1,0 +1,86 @@
+name: Task 1
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+  
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repo code
+        uses: actions/checkout@v4
+      
+      - name: Install python
+        run: sudo apt update && sudo apt upgrade && sudo apt install python3.13
+      
+      - name: Prepare dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Create .env file
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
+          PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
+          TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'example_db' }}
+          DB_NAME: ${{ vars.DB_NAME || 'example_db_2' }}
+          USER: ${{ vars.USER || 'example' }}
+          ALGORITHM: ${{ vars.ALGORITHM || 'HS256' }}
+          REFRESH_ALGORITHM: ${{ vars.REFRESH_ALGORITHM || 'HS256' }}
+          TOKEN_EXPIRE_MINUTES: ${{ vars.TOKEN_EXPIRE_MINUTES || 30 }}
+          REFRESH_TOKEN_EXPIRE_MINUTES: ${{ vars.REFRESH_TOKEN_EXPIRE_MINUTES || 1440 }}
+          PGADMIN_EMAIL: ${{ vars.PGADMIN_EMAIL || 'admin@example.com' }}
+        run: |
+          cat > .env << EOF
+          TEST_DB_NAME=${TEST_DB_NAME}
+          DB_NAME=${DB_NAME}
+          DB_PASSWORD=${DB_PASSWORD}
+          USER=${USER}
+          TEST_DB_URL=postgresql://${USER}:${DB_PASSWORD}@test_db:5432/${TEST_DB_NAME}
+          DB_URL=postgresql://${USER}:${DB_PASSWORD}@main_db:5432/${DB_NAME}
+          SECRET_KEY=${SECRET_KEY}
+          REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
+          ALGORITHM=${ALGORITHM}
+          REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
+          TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
+          REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
+          PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+          PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+          EOF
+      
+      - name: Start app
+        run: docker compose up -d
+      
+      - name: Wait for app to start 
+        run: sleep 60
+
+      - name: Run tests 
+        run: docker compose run --rm tests 
+        continue-on-error: true 
+        id: tests
+      
+      - name: Run database tests
+        run: docker compose run --rm test_db
+        continue-on-error: true 
+        id: test_db
+      
+      - name: Check test results
+        if: steps.tests.outcome == 'failure' || steps.test_db.outcome == 'failure'
+        run: |
+          echo "Tests failed"
+          docker compose logs tests test_db 
+          exit 1
+
+  security:
+    runs-on: ubuntu-latest
+
+  build:
+    needs: [lint, tests, security]
+    runs-on: ubuntu-latest

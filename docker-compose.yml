@@ -109,6 +109,7 @@ services:
     command: >
       postgres -c listen_addresses='*'
 
+
 volumes:
   pg_main_data:
   pgadmin4_data:

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from ..validation.schemas import Payload, TokenResp
 from fastapi import Depends, HTTPException
 from ..database.database import get_db
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 from sqlalchemy import exists, select, delete
 from ..database import models
 
@@ -76,7 +76,9 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         return int(token_data.sub)
 
     except JWTError as e:
-        raise HTTPException(status_code=403, detail=f"Invalid token: {str(e)}")
+        raise HTTPException(
+            status_code=403, detail=f"Invalid token: {str(e)}"
+        )
     except ValidationError as e:
         raise HTTPException(
             status_code=403,
@@ -84,13 +86,15 @@ def verify_token(token: str = Depends(oauth2_scheme)):
         )
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
     user_id = verify_token(token)
 
-    if not await db.scalar(select(exists().where(models.User.id == user_id))):
-        raise HTTPException(status_code=404, detail="User not found")
+    if not db.scalar(select(exists().where(models.User.id == user_id))):
+        raise HTTPException(
+            status_code=404, detail="User not found"
+        )
 
     return user_id
 
@@ -101,7 +105,7 @@ def create_token_pair(subject_id: int) -> TokenResp:
     return TokenResp(access_token=access_token, refresh_token=refresh_token)
 
 
-async def verify_refresh_token(token: str, db: AsyncSession = Depends(get_db)):
+def verify_refresh_token(token: str, db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(
             token, key=REFRESH_SECRET_KEY, algorithms=REFRESH_ALGORITHM
@@ -116,7 +120,7 @@ async def verify_refresh_token(token: str, db: AsyncSession = Depends(get_db)):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        token_exists = await db.execute(
+        token_exists = db.execute(
             select(exists().where(models.RefreshToken.token == token))
         ).scalar()
 
@@ -135,17 +139,17 @@ async def verify_refresh_token(token: str, db: AsyncSession = Depends(get_db)):
         )
 
 
-async def refresh_access_token(refresh_token: str, db: AsyncSession = Depends(get_db)):
-    user_id = await verify_refresh_token(refresh_token, db)
+def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
+    user_id = verify_refresh_token(refresh_token, db)
 
     new_access_token = create_token(user_id)
     new_refresh_token = create_refresh_token(user_id)
 
-    await db.execute(
+    db.execute(
         delete(models.RefreshToken).where(models.RefreshToken.token == refresh_token)
     )
 
-    await db.add(
+    db.add(
         models.RefreshToken(
             token=new_refresh_token,
             owner=user_id,
@@ -158,6 +162,6 @@ async def refresh_access_token(refresh_token: str, db: AsyncSession = Depends(ge
             ),
         )
     )
-    await db.commit()
+    db.commit()
 
     return TokenResp(access_token=new_access_token, refresh_token=new_refresh_token)
