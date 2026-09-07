@@ -1,0 +1,24 @@
+name: 2-Job
+
+on:
+  push:
+
+jobs:
+  first:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repo code
+        uses: actions/checkout@v4
+      - name: Check os 
+        run: cat /etc/os-release
+      - name: Run task
+        run: ./run.sh
+      - name: List files
+        run: ls -la
+  second:
+    runs-on: debian-latest
+    steps:
+      - name: Check os 
+        run: cat /etc/os-release
+      - name: List files
+        run: ls -la
