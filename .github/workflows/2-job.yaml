@@ -12,11 +12,11 @@ jobs:
       - name: Check os 
         run: cat /etc/os-release
       - name: Run task
-        run: ./run.sh
+        run: chmod +x run.sh && ./run.sh
       - name: List files
         run: ls -la
   second:
-    runs-on: debian-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check os 
         run: cat /etc/os-release
