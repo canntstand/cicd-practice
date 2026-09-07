@@ -1,0 +1,21 @@
+FROM python:3.13.5-slim-bookworm
+
+LABEL owner="r0maf"
+
+WORKDIR /test
+
+RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+
+COPY /backend/requirements.txt .
+
+COPY pytest.ini .
+
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+COPY backend backend
+
+RUN cd backend/app/routers && rm -rf frontend.py
+
+COPY tests tests
+
+CMD ["pytest"]

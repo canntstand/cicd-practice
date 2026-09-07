@@ -1,0 +1,12 @@
+name: Test Job 
+
+on:
+  push:
+
+jobs:
+  script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get repo code
+        uses: actions/checkout@v4 
+        
