@@ -4,9 +4,10 @@ on:
   push:
 
 jobs:
-  script:
+  main:
     runs-on: ubuntu-latest
     steps:
       - name: Get repo code
         uses: actions/checkout@v4 
-        
+      - name: Do everything I need
+        run: ls -la && cat /etc/os-release && ls -la cicd-practice
