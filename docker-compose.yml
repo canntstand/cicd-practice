@@ -6,7 +6,6 @@ services:
       - POSTGRES_DB=${TEST_DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_USER=${USER}
-      - POSTGRES_HOST_AUTH_METHOD=trust
     networks:
       - backend
     volumes:
@@ -97,7 +96,6 @@ services:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_USER=${USER}
-      - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - 5432:5432
     networks:
