@@ -1,7 +1,7 @@
 ---
 services:
   test_db:
-    image: postgres:latest
+    image: postgres:18
     environment:
       - POSTGRES_DB=${TEST_DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -10,7 +10,7 @@ services:
     networks:
       - backend
     volumes:
-      - pg_test_data:/var/lib/postgresql/data
+      - pg_test_data:/var/lib/postgresql/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${USER} -d ${TEST_DB_NAME}"]
       interval: 5s
@@ -92,7 +92,7 @@ services:
         condition: service_started
 
   main_db:
-    image: postgres:latest
+    image: postgres:18
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -103,7 +103,7 @@ services:
     networks:
       - backend
     volumes:
-      - pg_main_data:/var/lib/postgresql/data
+      - pg_main_data:/var/lib/postgresql/
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${USER} -d ${DB_NAME}"]
       interval: 5s
