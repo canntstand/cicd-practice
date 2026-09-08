@@ -1,7 +1,5 @@
 FROM python:3.13.5-slim-bookworm
 
-LABEL owner="r0maf"
-
 RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /backend
