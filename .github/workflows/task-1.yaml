@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
       - name: 'Yamllint'
-        uses: karancode/yamllint-github-action@master
+        uses: karancode/yamllint-github-action@v2.1.1
         with:
           yamllint_file_or_dir: 'docker-compose.yml'
           yamllint_strict: false
@@ -49,7 +49,7 @@ jobs:
           PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD || 'example123'}}
           TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'test_db' }}
           DB_NAME: ${{ vars.DB_NAME || 'main_db' }}
-          USER: ${{ vars.USER || 'example' }}
+          POSTGRES_USER: ${{ vars.POSTGRES_USER || 'example' }}
           ALGORITHM: ${{ vars.ALGORITHM || 'HS256' }}
           REFRESH_ALGORITHM: ${{ vars.REFRESH_ALGORITHM || 'HS256' }}
           TOKEN_EXPIRE_MINUTES: ${{ vars.TOKEN_EXPIRE_MINUTES || 30 }}
@@ -60,9 +60,9 @@ jobs:
           TEST_DB_NAME=${TEST_DB_NAME}
           DB_NAME=${DB_NAME}
           DB_PASSWORD=${DB_PASSWORD}
-          USER=${USER}
-          TEST_DB_URL=postgresql://${USER}:${DB_PASSWORD}@${TEST_DB_NAME}:5432/${TEST_DB_NAME}
-          DB_URL=postgresql://${USER}:${DB_PASSWORD}@${DB_NAME}:5432/${DB_NAME}
+          POSTGRES_USER=${POSTGRES_USER}
+          TEST_DB_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@${TEST_DB_NAME}:5432/${TEST_DB_NAME}
+          DB_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@${DB_NAME}:5432/${DB_NAME}
           SECRET_KEY=${SECRET_KEY}
           REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
           ALGORITHM=${ALGORITHM}
@@ -75,9 +75,6 @@ jobs:
       
       - name: Start app
         run: docker compose up -d
-      
-      - name: Wait for app to start 
-        run: sleep 60
 
       - name: Run tests 
         run: docker compose run --rm tests 
