@@ -47,8 +47,8 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY || 'example_key23304163dswfd23bv123f7'}}
           REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY || 'example_key8asdg5asd02df'}}
           PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD || 'example123'}}
-          TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'example_db' }}
-          DB_NAME: ${{ vars.DB_NAME || 'example_db_2' }}
+          TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'test_db' }}
+          DB_NAME: ${{ vars.DB_NAME || 'main_db' }}
           USER: ${{ vars.USER || 'example' }}
           ALGORITHM: ${{ vars.ALGORITHM || 'HS256' }}
           REFRESH_ALGORITHM: ${{ vars.REFRESH_ALGORITHM || 'HS256' }}
