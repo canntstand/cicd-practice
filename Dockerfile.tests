@@ -8,11 +8,15 @@ COPY backend/requirements.txt .
 
 COPY pytest.ini .
 
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN python -m pip install --upgrade pip
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip uninstall ecdsa -y || true
 
 COPY backend backend
 
-RUN cd backend/app/routers && rm -rf frontend.py
+RUN cd backend/app/routers && rm -rf frontend.py || true
 
 COPY tests tests
 
