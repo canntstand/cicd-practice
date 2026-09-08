@@ -61,8 +61,8 @@ jobs:
           DB_NAME=${DB_NAME}
           DB_PASSWORD=${DB_PASSWORD}
           USER=${USER}
-          TEST_DB_URL=postgresql://${USER}:${DB_PASSWORD}@test_db:5432/${TEST_DB_NAME}
-          DB_URL=postgresql://${USER}:${DB_PASSWORD}@main_db:5432/${DB_NAME}
+          TEST_DB_URL=postgresql://${USER}:${DB_PASSWORD}@${TEST_DB_NAME}:5432/${TEST_DB_NAME}
+          DB_URL=postgresql://${USER}:${DB_PASSWORD}@${DB_NAME}:5432/${DB_NAME}
           SECRET_KEY=${SECRET_KEY}
           REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
           ALGORITHM=${ALGORITHM}
@@ -103,6 +103,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
+          pip uninstall ecdsa -y || true
 
       - uses: pypa/gh-action-pip-audit@v1.1.0
 

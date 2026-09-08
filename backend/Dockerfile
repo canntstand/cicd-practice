@@ -10,6 +10,8 @@ RUN python -m pip install --upgrade pip
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN pip uninstall ecdsa -y || true
+
 COPY . .
 
 EXPOSE 8000
