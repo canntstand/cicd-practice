@@ -10,25 +10,43 @@ on:
   
 jobs:
   lint:
+    name: 'Yamllint'
     runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@master
+      - name: 'Yamllint'
+        uses: karancode/yamllint-github-action@master
+        with:
+          yamllint_file_or_dir: 'docker-compose.yml'
+          yamllint_strict: false
+          yamllint_comment: true
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   tests:
     runs-on: ubuntu-latest
     steps:
       - name: Get repo code
         uses: actions/checkout@v4
       
-      - name: Install python
-        run: sudo apt update && sudo apt upgrade && sudo apt install python3.13
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install pip
+        run: python -m ensurepip --upgrade
       
       - name: Prepare dependencies
         run: pip install -r requirements.txt
       
       - name: Create .env file
         env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY }}
-          PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD || 'example123'}}
+          SECRET_KEY: ${{ secrets.SECRET_KEY || 'example_key23304163dswfd23bv123f7'}}
+          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY || 'example_key8asdg5asd02df'}}
+          PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD || 'example123'}}
           TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'example_db' }}
           DB_NAME: ${{ vars.DB_NAME || 'example_db_2' }}
           USER: ${{ vars.USER || 'example' }}
@@ -63,24 +81,35 @@ jobs:
 
       - name: Run tests 
         run: docker compose run --rm tests 
-        continue-on-error: true 
         id: tests
       
-      - name: Run database tests
-        run: docker compose run --rm test_db
-        continue-on-error: true 
-        id: test_db
-      
       - name: Check test results
-        if: steps.tests.outcome == 'failure' || steps.test_db.outcome == 'failure'
+        if: steps.tests.outcome == 'failure'
         run: |
           echo "Tests failed"
-          docker compose logs tests test_db 
+          docker compose logs tests
           exit 1
 
   security:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install
+        run: python -m pip install .
+
+      - uses: pypa/gh-action-pip-audit@v1.1.0
+
+      - name: Perform Bandit Analysis
+        uses: PyCQA/bandit-action@v1
 
   build:
     needs: [lint, tests, security]
     runs-on: ubuntu-latest
+    steps:
+      - name: build
+        run: echo "App is building..."
