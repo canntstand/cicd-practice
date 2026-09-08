@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from .routers import profile, recurring_tasks, tasks, auth
 
-app = FastAPI(docs_url=False, redoc_url=False)
+app = FastAPI(docs_url="/docs", redoc_url="/redoc")
 
 app.include_router(profile.router)
 app.include_router(auth.router)

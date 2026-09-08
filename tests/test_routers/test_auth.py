@@ -36,14 +36,14 @@ class TestLogin:
             ({"username": "example", "password": None}),
         ],
     )
-    def test_post_login_with_missing_fields_returns_400(
+    def test_post_login_with_missing_fields_returns_422(
         self, register: None, data: dict, client: TestClient
     ):
         resp = client.post(
             "/api/login",
             data=data,
         )
-        assert resp.status_code == 400
+        assert resp.status_code == 422
 
 
 class TestRegister:

@@ -75,8 +75,9 @@ services:
       - REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
       - REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
     command: >
-      sh -c "cd backend && alembic upgrade head && cd .. && pytest;
-      tail -f /dev/null"
+      sh -c "set -e;
+      cd backend && alembic upgrade head;
+      cd .. && pytest"
     tty: true
     stdin_open: true
     volumes:
