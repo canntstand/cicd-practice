@@ -10,7 +10,7 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 
 
-@router.patch("/{user_task_id}/status", status_code=200, response_model=schemas.TaskOut)
+@router.put("/{user_task_id}/status", status_code=200, response_model=schemas.TaskOut)
 def complete_uncomplete_task(
     user_task_id: int,
     db: Session = Depends(get_db),
@@ -55,7 +55,7 @@ def get_task(
     return task
 
 
-@router.patch("/{user_task_id}", status_code=200, response_model=schemas.TaskOut)
+@router.put("/{user_task_id}", status_code=200, response_model=schemas.TaskOut)
 def update_task(
     body: schemas.TaskUpdate,
     user_task_id: int,

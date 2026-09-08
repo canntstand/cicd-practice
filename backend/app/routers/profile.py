@@ -25,7 +25,7 @@ def delete_profile(
     return Response(status_code=204)
 
 
-@router.patch("/", status_code=200, response_model=schemas.UserOut)
+@router.put("/", status_code=200, response_model=schemas.UserOut)
 def update_profile(
     body: schemas.UserUpdate,
     db: Session = Depends(get_db),

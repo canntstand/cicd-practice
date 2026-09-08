@@ -20,23 +20,23 @@ class TestCompleteUncompleteTask:
     def test_put_task_status_returns_200(
         self, token: dict[str, str], create_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/tasks/1/status", headers=token)
+        resp = client.put("/api/tasks/1/status", headers=token)
         assert resp.status_code == 200
         assert resp.json()["is_completed"] == True
-        resp = client.patch("/api/tasks/1/status", headers=token)
+        resp = client.put("/api/tasks/1/status", headers=token)
         assert resp.status_code == 200
         assert resp.json()["is_completed"] == False
 
     def test_put_task_status_auth_returns_401(
         self, create_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/tasks/1/status")
+        resp = client.put("/api/tasks/1/status")
         assert resp.status_code == 401
 
     def test_put_task_status_returns_404(
         self, token: dict[str, str], create_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/tasks/0/status", headers=token)
+        resp = client.put("/api/tasks/0/status", headers=token)
         assert resp.status_code == 404
 
     def test_put_task_status_user_doesnt_own_returns_404(
@@ -46,7 +46,7 @@ class TestCompleteUncompleteTask:
         create_tasks: None,
         client: TestClient,
     ):
-        resp1 = client.patch("/api/tasks/1/status", headers=token)
+        resp1 = client.put("/api/tasks/1/status", headers=token)
         assert resp1.status_code == 200
         assert resp1.json()["is_completed"] is True
 
@@ -150,7 +150,7 @@ class TestUpdateTask:
         token: dict[str, str],
         client: TestClient,
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/tasks/1",
             json=body,
             headers=token,
@@ -159,7 +159,7 @@ class TestUpdateTask:
         assert resp.json()["name"] == "new"
 
     def test_update_task_returns_401(self, create_tasks: None, client: TestClient):
-        resp = client.patch(
+        resp = client.put(
             "/api/tasks/1",
             json={
                 "name": "new",
@@ -180,7 +180,7 @@ class TestUpdateTask:
     def test_update_task_with_invalid_body_returns_422(
         self, body, create_tasks: None, client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/tasks/1",
             json=body,
             headers=token,
@@ -190,7 +190,7 @@ class TestUpdateTask:
     def test_update_task_returns_404(
         self, create_tasks: None, client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch("/api/tasks/0", json={"name": "new"}, headers=token)
+        resp = client.put("/api/tasks/0", json={"name": "new"}, headers=token)
         assert resp.status_code == 404
 
     def test_update_task_user_doesnt_own_returns_404(
@@ -200,7 +200,7 @@ class TestUpdateTask:
         create_tasks: None,
         client: TestClient,
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/tasks/1",
             json={"name": "new", "description": "new desc"},
             headers=token,

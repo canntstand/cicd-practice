@@ -22,23 +22,23 @@ class TestCompleteUncompleteRecurTask:
     def test_put_recur_task_status_returns_200(
         self, token: dict[str, str], create_recur_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/recur-tasks/1/status", headers=token)
+        resp = client.put("/api/recur-tasks/1/status", headers=token)
         assert resp.status_code == 200
         assert resp.json()["is_completed"] == True
-        resp = client.patch("/api/recur-tasks/1/status", headers=token)
+        resp = client.put("/api/recur-tasks/1/status", headers=token)
         assert resp.status_code == 200
         assert resp.json()["is_completed"] == False
 
     def test_put_recur_task_status_auth_returns_401(
         self, create_recur_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/recur-tasks/1/status")
+        resp = client.put("/api/recur-tasks/1/status")
         assert resp.status_code == 401
 
     def test_put_recur_task_status_returns_404(
         self, token: dict[str, str], create_recur_tasks: None, client: TestClient
     ):
-        resp = client.patch("/api/recur-tasks/0/status", headers=token)
+        resp = client.put("/api/recur-tasks/0/status", headers=token)
         assert resp.status_code == 404
 
     def test_put_recur_task_status_user_doesnt_own_returns_404(
@@ -48,7 +48,7 @@ class TestCompleteUncompleteRecurTask:
         create_recur_tasks: None,
         client: TestClient,
     ):
-        resp1 = client.patch("/api/recur-tasks/1/status", headers=token)
+        resp1 = client.put("/api/recur-tasks/1/status", headers=token)
         assert resp1.status_code == 200
         assert resp1.json()["is_completed"] is True
 
@@ -175,7 +175,7 @@ class TestUpdateRecurTask:
     ):
 
         days_in_different_order = ["sun", "mon", "tue"]
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json={"days": days_in_different_order},
             headers=token,
@@ -189,7 +189,7 @@ class TestUpdateRecurTask:
         original_task = client.get("/api/recur-tasks/1", headers=token).json()
 
         new_days = ["mon", "wed", "fri"]
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json={"days": new_days},
             headers=token,
@@ -216,7 +216,7 @@ class TestUpdateRecurTask:
         token: dict[str, str],
         client: TestClient,
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json=body,
             headers=token,
@@ -227,7 +227,7 @@ class TestUpdateRecurTask:
     def test_update_recur_task_returns_401(
         self, create_recur_tasks: None, client: TestClient
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json={
                 "name": "new",
@@ -240,7 +240,7 @@ class TestUpdateRecurTask:
     def test_update_recur_task_with_invalid_body_returns_422(
         self, create_recur_tasks: None, client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json={"description": 9.123, "priority": [1, 4, 8]},
             headers=token,
@@ -250,7 +250,7 @@ class TestUpdateRecurTask:
     def test_update_recur_task_returns_404(
         self, create_recur_tasks: None, client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/0",
             json={"name": "new", "days": ["mon", "thu"]},
             headers=token,
@@ -264,7 +264,7 @@ class TestUpdateRecurTask:
         create_recur_tasks: None,
         client: TestClient,
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/recur-tasks/1",
             json={"name": "new", "days": ["wed", "sat"]},
             headers=token,

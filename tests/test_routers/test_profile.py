@@ -108,11 +108,11 @@ class TestUpdateProfile:
     def test_update_profile_returns_200(
         self, body: dict[str, str], client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch("/api/profile", json=body, headers=token)
+        resp = client.put("/api/profile", json=body, headers=token)
         assert resp.status_code == 200
 
     def test_update_profile_auth_returns_401(self, client: TestClient):
-        resp = client.patch(
+        resp = client.put(
             "/api/profile", json={"name": "example", "password": "example123"}
         )
         assert resp.status_code == 401
@@ -127,7 +127,7 @@ class TestUpdateProfile:
     def test_update_profile_with_invalid_email_returns_422(
         self, email: str, client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch(
+        resp = client.put(
             "/api/profile",
             json={"name": "name", "password": "password123", "email": email},
             headers=token,
@@ -144,7 +144,7 @@ class TestUpdateProfile:
             "email": "new.email@example.com",
         }
 
-        resp = client.patch("/api/profile", json=new_data, headers=token)
+        resp = client.put("/api/profile", json=new_data, headers=token)
         assert resp.status_code == 200
 
         updated_user = test_db.execute(
@@ -166,5 +166,5 @@ class TestUpdateProfile:
     def test_update_profile_with_invalid_data_returns_422(
         self, body: dict[Any, Any], client: TestClient, token: dict[str, str]
     ):
-        resp = client.patch("/api/profile", json=body, headers=token)
+        resp = client.put("/api/profile", json=body, headers=token)
         assert resp.status_code == 422

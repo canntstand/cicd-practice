@@ -10,7 +10,7 @@ from ..utils.dependencies import get_current_user
 router = APIRouter(prefix="/api/recur-tasks", tags=["Recur-tasks", "API"])
 
 
-@router.patch(
+@router.put(
     "/{user_task_id}/status", status_code=200, response_model=schemas.RecurTaskOut
 )
 def complete_uncomplete_recur_task(
@@ -58,7 +58,7 @@ def get_recur_task(
     return task
 
 
-@router.patch("/{user_task_id}", status_code=200, response_model=schemas.RecurTaskOut)
+@router.put("/{user_task_id}", status_code=200, response_model=schemas.RecurTaskOut)
 def update_recur_task(
     body: schemas.RecurTaskUpdate,
     user_task_id: int,
