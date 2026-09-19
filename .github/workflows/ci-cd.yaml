@@ -9,7 +9,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  
+
 jobs:
   lint:
     name: Code & Config Linting
@@ -20,14 +20,14 @@ jobs:
       - name: Yamllint
         uses: karancode/yamllint-github-action@v2.1.1
         with:
-          yamllint_file_or_dir: 'docker-compose.yml'
+          yamllint_file_or_dir: "docker-compose.yml"
           yamllint_strict: false
-      
-      - name: Set up Python 
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Run Ruff (Linter)
         run: |
           pip install ruff
@@ -57,10 +57,10 @@ jobs:
           PGADMIN_DEFAULT_EMAIL=admin@example.com
           PGADMIN_DEFAULT_PASSWORD=example123
           EOF
-      
+
       - name: Start services
         run: docker compose up -d --wait main_db test_db
-      
+
       - name: Run tests via Docker Compose
         run: docker compose run --rm tests
 
@@ -72,7 +72,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -100,13 +100,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry 
-        uses: docker/login-action@v3 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -115,10 +115,10 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha,prefix=
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -129,7 +129,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
 
   deploy:
     name: Deploy to Server
@@ -145,12 +144,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+
+            if [ ! -d /opt/cicd-practice ]; then
+              git clone https://github.com/canntstand/cicd-practice.git /opt/cicd-practice
+            else
+              cd /opt/cicd-practice
+              git pull origin main
+            fi
+
             cd /opt/cicd-practice
-            git pull origin main
 
             echo "${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest"
 
             docker compose pull backend
             docker compose up -d --remove-orphans backend pgadmin4 main_db
-            
