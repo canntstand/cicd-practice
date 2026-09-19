@@ -41,8 +41,6 @@ services:
     depends_on:
       main_db:
         condition: service_healthy
-      test_db:
-        condition: service_healthy
     ports:
       - "8000:8000"
 
@@ -55,7 +53,6 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
     depends_on:
       - main_db
-      - test_db
     volumes:
       - pgadmin4_data:/var/lib/pgadmin
     networks:
@@ -87,8 +84,6 @@ services:
     depends_on:
       test_db:
         condition: service_healthy
-      backend:
-        condition: service_started
 
   main_db:
     image: postgres:18
