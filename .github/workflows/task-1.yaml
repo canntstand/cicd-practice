@@ -1,125 +1,107 @@
-name: Task 1
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - "main"
+    branches: ["main"]
   pull_request:
-    branches:
-      - "main"
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
   
 jobs:
   lint:
-    name: 'Yamllint'
+    name: Code & Config Linting
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v4
-      - name: 'Yamllint'
+      - uses: actions/checkout@v4
+
+      - name: Yamllint
         uses: karancode/yamllint-github-action@v2.1.1
         with:
           yamllint_file_or_dir: 'docker-compose.yml'
           yamllint_strict: false
-          yamllint_comment: true
-        env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get repo code
-        uses: actions/checkout@v4
       
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - name: Set up Python 
+        uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-
-      - name: Install pip
-        run: python -m ensurepip --upgrade
       
-      - name: Prepare dependencies
-        run: pip install -r backend/requirements.txt
-      
-      - name: Create .env file
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD || 'example123'}}
-          SECRET_KEY: ${{ secrets.SECRET_KEY || 'example_key23304163dswfd23bv123f7'}}
-          REFRESH_SECRET_KEY: ${{ secrets.REFRESH_SECRET_KEY || 'example_key8asdg5asd02df'}}
-          PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD || 'example123'}}
-          TEST_DB_NAME: ${{ vars.TEST_DB_NAME || 'test_db' }}
-          DB_NAME: ${{ vars.DB_NAME || 'main_db' }}
-          POSTGRES_USER: ${{ vars.POSTGRES_USER || 'example' }}
-          ALGORITHM: ${{ vars.ALGORITHM || 'HS256' }}
-          REFRESH_ALGORITHM: ${{ vars.REFRESH_ALGORITHM || 'HS256' }}
-          TOKEN_EXPIRE_MINUTES: ${{ vars.TOKEN_EXPIRE_MINUTES || 30 }}
-          REFRESH_TOKEN_EXPIRE_MINUTES: ${{ vars.REFRESH_TOKEN_EXPIRE_MINUTES || 1440 }}
-          PGADMIN_EMAIL: ${{ vars.PGADMIN_EMAIL || 'admin@example.com' }}
+      - name: Run Ruff (Linter)
         run: |
-          cat > .env << EOF
-          TEST_DB_NAME=${TEST_DB_NAME}
-          DB_NAME=${DB_NAME}
-          DB_PASSWORD=${DB_PASSWORD}
-          POSTGRES_USER=${POSTGRES_USER}
-          TEST_DB_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@${TEST_DB_NAME}:5432/${TEST_DB_NAME}
-          DB_URL=postgresql://${POSTGRES_USER}:${DB_PASSWORD}@${DB_NAME}:5432/${DB_NAME}
-          SECRET_KEY=${SECRET_KEY}
-          REFRESH_SECRET_KEY=${REFRESH_SECRET_KEY}
-          ALGORITHM=${ALGORITHM}
-          REFRESH_ALGORITHM=${REFRESH_ALGORITHM}
-          TOKEN_EXPIRE_MINUTES=${TOKEN_EXPIRE_MINUTES}
-          REFRESH_TOKEN_EXPIRE_MINUTES=${REFRESH_TOKEN_EXPIRE_MINUTES}
-          PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-          PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+          pip install ruff
+          ruff check .
+
+  tests:
+    name: Integration & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat << EOF > .env
+          TEST_DB_NAME=${{ vars.TEST_DB_NAME || 'test_db' }}
+          DB_NAME=${{ vars.DB_NAME || 'main_db' }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD || 'example123' }}
+          POSTGRES_USER=${{ vars.POSTGRES_USER || 'example' }}
+          TEST_DB_URL=postgresql://${{ vars.POSTGRES_USER || 'example' }}:${{ secrets.DB_PASSWORD || 'example123' }}@test_db:5432/${{ vars.TEST_DB_NAME || 'test_db' }}
+          DB_URL=postgresql://${{ vars.POSTGRES_USER || 'example' }}:${{ secrets.DB_PASSWORD || 'example123' }}@main_db:5432/${{ vars.DB_NAME || 'main_db' }}
+          SECRET_KEY=${{ secrets.SECRET_KEY || 'example_key' }}
+          REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY || 'example_refresh' }}
+          ALGORITHM=${{ vars.ALGORITHM || 'HS256' }}
+          REFRESH_ALGORITHM=${{ vars.REFRESH_ALGORITHM || 'HS256' }}
+          TOKEN_EXPIRE_MINUTES=30
+          REFRESH_TOKEN_EXPIRE_MINUTES=1440
+          PGADMIN_DEFAULT_EMAIL=admin@example.com
+          PGADMIN_DEFAULT_PASSWORD=example123
           EOF
       
-      - name: Start app
-        run: docker compose up -d main_db test_db backend
+      - name: Start services
+        run: docker compose up -d --wait main_db test_db
       
-      - name: Check containers
-        run: |
-          if [ "$(docker compose ps --status running | wc -l)" -lt 2 ]; then
-            echo "Not all containers are running"
-            docker compose ps
-            exit 1
-          fi
-          echo "All containers are running"
-
-      - name: Run tests 
-        run: docker compose run --rm tests 
-        id: tests
-      
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4 
-        with:
-          name: test-results
-          path: |
-            ./tests/reports/
-            ./pytest_output.txt
+      - name: Run tests via Docker Compose
+        run: docker compose run --rm tests
 
   security:
+    name: Security Checks
     runs-on: ubuntu-latest
     permissions:
       security-events: write
       contents: read
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r backend/requirements.txt
-          python -m pip uninstall ecdsa -y || true
-
-      - uses: pypa/gh-action-pip-audit@v1.1.0
+      - name: Security audit for dependencies
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: backend/requirements.txt
 
       - name: Perform Bandit Analysis
         uses: PyCQA/bandit-action@v1
+        with:
+          path: "backend"
 
-  build:
+  build-and-push:
+    name: Build & Push Docker Image
     needs: [lint, tests, security]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     steps:
       - name: build
         run: echo "App is building only after lint, tests, security"
+
+  deploy:
+    name: Deploy to Server
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy
+        run: echo "App is deploying after build-and-push"
