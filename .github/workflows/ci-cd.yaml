@@ -148,8 +148,25 @@ jobs:
             cd /opt/cicd-practice
             git pull origin main
 
+            cat << EOF > .env
+            TEST_DB_NAME=${{ vars.TEST_DB_NAME || 'test_db' }}
+            DB_NAME=${{ vars.DB_NAME || 'main_db' }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD || 'example123' }}
+            POSTGRES_USER=${{ vars.POSTGRES_USER || 'example' }}
+            TEST_DB_URL=postgresql://${{ vars.POSTGRES_USER || 'example' }}:${{ secrets.DB_PASSWORD || 'example123' }}@test_db:5432/${{ vars.TEST_DB_NAME || 'test_db' }}
+            DB_URL=postgresql://${{ vars.POSTGRES_USER || 'example' }}:${{ secrets.DB_PASSWORD || 'example123' }}@main_db:5432/${{ vars.DB_NAME || 'main_db' }}
+            SECRET_KEY=${{ secrets.SECRET_KEY || 'example_key' }}
+            REFRESH_SECRET_KEY=${{ secrets.REFRESH_SECRET_KEY || 'example_refresh' }}
+            ALGORITHM=${{ vars.ALGORITHM || 'HS256' }}
+            REFRESH_ALGORITHM=${{ vars.REFRESH_ALGORITHM || 'HS256' }}
+            TOKEN_EXPIRE_MINUTES=30
+            REFRESH_TOKEN_EXPIRE_MINUTES=1440
+            PGADMIN_DEFAULT_EMAIL=admin@example.com
+            PGADMIN_DEFAULT_PASSWORD=example123
+            BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+            EOF
+
             echo "${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest"
 
             docker compose pull backend
             docker compose up -d --remove-orphans backend pgadmin4 main_db
