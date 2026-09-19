@@ -1,8 +1,10 @@
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-from sqlalchemy import select
-import pytest
 from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from backend.app.database import models
 from backend.app.utils.dependencies import get_current_user
 

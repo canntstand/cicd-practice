@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
-from ..validation import schemas
-from ..database.database import get_db
-from ..database import models
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import delete
 from sqlalchemy.orm import Session
+
+from ..database import models
+from ..database.database import get_db
 from ..services import users
 from ..utils.dependencies import get_current_user
+from ..validation import schemas
 
 router = APIRouter(prefix="/api/profile", tags=["Profile", "API"])
 

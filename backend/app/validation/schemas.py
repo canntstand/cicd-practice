@@ -1,8 +1,8 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
 from .enum import Weekdays
-from typing import Optional
-from pydantic import field_validator
 
 
 class MainModel(BaseModel):
@@ -11,7 +11,7 @@ class MainModel(BaseModel):
 
 class Task(MainModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     priority: int = 0
 
 
@@ -31,12 +31,12 @@ class RecurTask(Task):
         return v
 
 class TaskUpdate(MainModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
     priority: int = 0
 
 class RecurTaskUpdate(TaskUpdate):
-    days: Optional[list[Weekdays]] = None
+    days: list[Weekdays] | None = None
 
 class RecurTaskOut(RecurTask):
     user_task_id: int
@@ -59,24 +59,24 @@ class RecurTaskWithOwnerUpdate(RecurTaskUpdate):
 
 class User(MainModel):
     name: str
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     password: str
 
 class UserUpdate(MainModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    name: str | None = None
+    email: EmailStr | None = None
+    password: str | None = None
 
 class UserOut(MainModel):
     name: str
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     created_at: datetime
 
 
 class UserOutByForm(MainModel):
     id: int
     password: str
-    email: Optional[EmailStr] = None
+    email: EmailStr | None = None
     name: str
     created_at: datetime
 

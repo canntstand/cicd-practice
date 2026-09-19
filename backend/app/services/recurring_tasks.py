@@ -1,10 +1,11 @@
-from ..utils.exc import db_exc_check
-from ..database import models
+import datetime
+
 from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
-from typing import Optional
+
+from ..database import models
+from ..utils.exc import db_exc_check
 from ..validation import schemas
-import datetime
 
 TASK_FIELDS = [
     models.RecurringTask.user_task_id,
@@ -20,7 +21,7 @@ TASK_FIELDS = [
 @db_exc_check
 def complete_uncomplete_recur_task(
     user_task_id: int, user_id: int, db: Session
-) -> Optional[schemas.RecurTaskOut]:
+) -> schemas.RecurTaskOut | None:
     task = db.execute(
         select(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,
@@ -87,7 +88,7 @@ def get_recur_tasks(user_id: int, db: Session) -> list[schemas.RecurTaskOut]:
 @db_exc_check
 def get_recur_task(
     user_id: int, user_task_id: int, db: Session
-) -> Optional[schemas.RecurTaskOut]:
+) -> schemas.RecurTaskOut | None:
     task = (
         db.execute(
             select(*TASK_FIELDS).where(
@@ -108,7 +109,7 @@ def get_recur_task(
 @db_exc_check
 def update_recur_task(
     user_task_id: int, body: schemas.RecurTaskWithOwnerUpdate, db: Session
-) -> Optional[schemas.RecurTaskOut]:
+) -> schemas.RecurTaskOut | None:
     task = db.execute(
         select(models.RecurringTask).where(
             models.RecurringTask.user_task_id == user_task_id,

@@ -1,18 +1,18 @@
+import datetime
+
 from fastapi import HTTPException, Response
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from sqlalchemy import delete
-from ..database import models
-from ..validation import schemas
-from ..utils.hash import hash_pwd, verify_pwd
-from ..utils.exc import db_exc_check
-from ..utils.dependencies import create_token_pair
-from ..database.database import get_db
-from . import users
-import datetime
 from jose import jwt
-from ..utils.exc import db_exc_check
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
+
 from ..config import settings as ss
+from ..database import models
+from ..utils.dependencies import create_token_pair
+from ..utils.exc import db_exc_check
+from ..utils.hash import hash_pwd, verify_pwd
+from ..validation import schemas
+from . import users
 
 
 @db_exc_check

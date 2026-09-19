@@ -1,14 +1,14 @@
-from typing import Optional
-from fastapi.security import OAuth2PasswordRequestForm
+import datetime
 
+from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import delete, select, update
+from sqlalchemy.orm import Session
+
+from ..database import models
 from ..utils.exc import db_exc_check
 from ..utils.hash import verify_pwd
-from sqlalchemy.orm import Session
-from ..database import models
-from sqlalchemy import delete, select, update
 from ..validation import schemas
-import datetime
-from fastapi import HTTPException
 
 USER_FIELDS = [
     models.User.id,
@@ -39,7 +39,7 @@ def create_user(body: schemas.User, db: Session) -> schemas.UserOut:
     return schemas.UserOut.model_validate(user)
 
 @db_exc_check
-def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
+def get_user(user_id: int, db: Session) -> schemas.UserOut | None:
     user = (
         db.execute(select(*USER_FIELDS).where(models.User.id == user_id))
         .mappings()
@@ -54,7 +54,7 @@ def get_user(user_id: int, db: Session) -> Optional[schemas.UserOut]:
 
 def get_user_by_form(
     form: OAuth2PasswordRequestForm, db: Session
-) -> Optional[schemas.UserOutByForm]:
+) -> schemas.UserOutByForm | None:
     user = (
         db.execute(
             select(*USER_FIELDS_AND_PWD).where(models.User.name == form.username)
@@ -74,7 +74,7 @@ def get_user_by_form(
     return user
 
 @db_exc_check
-def update_user(user_id: int, body: schemas.UserUpdate, db: Session) -> Optional[schemas.UserOut]:
+def update_user(user_id: int, body: schemas.UserUpdate, db: Session) -> schemas.UserOut | None:
     
     body = body.model_dump()
     body = {key: value for key, value in body.items() if value is not None}

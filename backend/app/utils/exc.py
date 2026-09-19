@@ -1,9 +1,11 @@
-from typing import Any, Callable
+import logging
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
+
+from fastapi import HTTPException
 from psycopg2 import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
-from fastapi import HTTPException
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -1,14 +1,16 @@
-from fastapi.security import OAuth2PasswordBearer
-from pydantic import ValidationError
-from ..config import settings as ss
-from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
-from ..validation.schemas import Payload, TokenResp
+
 from fastapi import Depends, HTTPException
-from ..database.database import get_db
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from pydantic import ValidationError
+from sqlalchemy import delete, exists, select
 from sqlalchemy.orm import Session
-from sqlalchemy import exists, select, delete
+
+from ..config import settings as ss
 from ..database import models
+from ..database.database import get_db
+from ..validation.schemas import Payload, TokenResp
 
 SECRET_KEY = ss.SECRET_KEY
 TOKEN_EXPIRE_MINUTES = ss.TOKEN_EXPIRE_MINUTES
@@ -77,12 +79,12 @@ def verify_token(token: str = Depends(oauth2_scheme)):
 
     except JWTError as e:
         raise HTTPException(
-            status_code=403, detail=f"Invalid token: {str(e)}"
+            status_code=403, detail=f"Invalid token: {e!s}"
         )
     except ValidationError as e:
         raise HTTPException(
             status_code=403,
-            detail=f"Token validation failed: {str(e)}",
+            detail=f"Token validation failed: {e!s}",
         )
 
 

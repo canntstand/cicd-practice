@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Weekdays(str, Enum):
     MON = "mon"
     TUE = "tue"

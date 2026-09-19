@@ -1,6 +1,15 @@
-from sqlalchemy import Column, DateTime, Integer, String, ARRAY, Boolean, ForeignKey, CheckConstraint
-from sqlalchemy.sql import func
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.sql import func
 
 Base = declarative_base()
 

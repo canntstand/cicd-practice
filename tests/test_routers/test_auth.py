@@ -1,12 +1,13 @@
+import datetime
+
 import pytest
 from fastapi.testclient import TestClient
-from fastapi.testclient import TestClient
-import datetime
 from jose import jwt
+from sqlalchemy import select
 from sqlalchemy.orm.session import Session
+
 from backend.app.config import settings as ss
 from backend.app.database import models
-from sqlalchemy import select
 
 
 class TestLogin:

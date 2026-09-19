@@ -1,11 +1,11 @@
 from fastapi import Depends, HTTPException, Response
 from fastapi.routing import APIRouter
-from ..database.database import get_db
 from sqlalchemy.orm import Session
-from ..validation import schemas
+
+from ..database.database import get_db
 from ..services import tasks
 from ..utils.dependencies import get_current_user
-
+from ..validation import schemas
 
 router = APIRouter(prefix="/api/tasks", tags=["Tasks", "API"])
 

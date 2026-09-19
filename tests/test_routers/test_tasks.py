@@ -1,7 +1,8 @@
-from typing import Sequence
+from collections.abc import Sequence
+
+import pytest
 from _pytest.mark.structures import ParameterSet
 from fastapi.testclient import TestClient
-import pytest
 
 
 class TestGetTasks:

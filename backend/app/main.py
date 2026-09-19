@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .routers import profile, recurring_tasks, tasks, auth
+from .routers import auth, profile, recurring_tasks, tasks
 
 app = FastAPI(docs_url="/docs", redoc_url="/redoc")
 

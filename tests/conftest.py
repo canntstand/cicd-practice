@@ -1,13 +1,13 @@
-from fastapi.security import OAuth2PasswordRequestForm
 import pytest
-from sqlalchemy import delete, select
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, delete, select
+from sqlalchemy.orm import Session, sessionmaker
+
+from backend.app.config import settings as ss
 from backend.app.database import models
 from backend.app.database.database import get_db
 from backend.app.main import app
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from backend.app.config import settings as ss
 from backend.app.services.auth import login
 from backend.app.services.recurring_tasks import create_recur_task
 from backend.app.services.tasks import create_task
