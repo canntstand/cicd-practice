@@ -25,7 +25,7 @@ def register(body: schemas.User, db: Session) -> bool:
 
 @db_exc_check
 def login(
-    form: OAuth2PasswordRequestForm, db: Session, response: Response
+    form: OAuth2PasswordRequestForm, db: Session, response: Response = Response()
 ) -> schemas.TokenResp:
     user = users.get_user_by_form(form, db)
     if not user or not verify_pwd(form.password, user.password):
