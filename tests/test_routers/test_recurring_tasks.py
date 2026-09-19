@@ -61,12 +61,12 @@ class TestCreateRecurTask:
     @pytest.mark.parametrize(
         "days",
         [
-            ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],  # все дни
-            ["mon"],  # один день
-            ["tue", "thu", "sat"],  # несколько дней
-            [],  # пустой список
-            ["invalid_day"],  # неверный день
-            ["mon", "mon"],  # дубликаты
+            ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+            ["mon"],
+            ["tue", "thu", "sat"],
+            [],
+            ["invalid_day"],
+            ["mon", "mon"],
         ],
     )
     def test_create_recur_task_with_different_days(

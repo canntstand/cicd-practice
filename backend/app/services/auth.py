@@ -33,14 +33,11 @@ def login(
     if not user or not verify_pwd(form.password, user.password):
         raise HTTPException(400, detail="Invalid credentials")
 
-    # Удаляем все старые refresh-токены пользователя (опционально)
     db.execute(delete(models.RefreshToken).where(models.RefreshToken.owner == user.id))
 
-    # Создаём новую пару токенов
     token_pair = create_token_pair(user.id)
     _save_refresh_token(db, user.id, token_pair.refresh_token)
 
-    # Устанавливаем куки
     response.set_cookie(
         key="access_token",
         value=token_pair.access_token,
