@@ -20,14 +20,12 @@ def register(body: schemas.User, db: Session) -> bool:
     body.password = hash_pwd(body.password)
     user = users.create_user(body, db)
     db.commit()
-    if user:
-        return True
-    return False
+    return bool(user)
 
 
 @db_exc_check
 def login(
-    form: OAuth2PasswordRequestForm, db: Session, response: Response = Response()
+    form: OAuth2PasswordRequestForm, db: Session, response: Response
 ) -> schemas.TokenResp:
     user = users.get_user_by_form(form, db)
     if not user or not verify_pwd(form.password, user.password):
@@ -59,8 +57,11 @@ def login(
 def _save_refresh_token(db: Session, user_id: int, refresh_token: str):
     expires = datetime.datetime.fromtimestamp(
         jwt.decode(
-            refresh_token, ss.REFRESH_SECRET_KEY, algorithms=[ss.REFRESH_ALGORITHM]
-        )["exp"]
+            refresh_token,
+            ss.REFRESH_SECRET_KEY,
+            algorithms=[ss.REFRESH_ALGORITHM],
+        )["exp"],
+        tz=datetime.timezone.utc,
     )
     db.add(models.RefreshToken(token=refresh_token, owner=user_id, expires_at=expires))
     db.commit()

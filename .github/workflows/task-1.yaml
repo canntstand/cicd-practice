@@ -82,7 +82,7 @@ jobs:
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: backend/requirements.txt
-          ignore-vulns: PYSEC-2026-1325 # игнорируем ecdsa уязвимость т.к андейтов нет и является зависимостью python-jose
+          ignore-vulns: PYSEC-2026-1325 # игнорируем ecdsa уязвимость т.к апдейтов нет и является зависимостью python-jose
 
       - name: Perform Bandit Analysis
         uses: PyCQA/bandit-action@v1

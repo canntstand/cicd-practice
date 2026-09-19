@@ -21,7 +21,7 @@ REFRESH_SECRET_KEY = ss.REFRESH_SECRET_KEY
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login", scheme_name="JWT")
 
 
-def create_token(subject_id: int, expires_delta: int = None) -> str:
+def create_token(subject_id: int, expires_delta: int | None = None) -> str:
     if expires_delta is not None:
         expires_delta = datetime.now(timezone.utc) + expires_delta
     else:
@@ -41,7 +41,7 @@ def create_token(subject_id: int, expires_delta: int = None) -> str:
     return encoded_jwt
 
 
-def create_refresh_token(subject_id: int, expires_delta: int = None) -> str:
+def create_refresh_token(subject_id: int, expires_delta: int | None = None) -> str:
     if expires_delta is not None:
         expires_delta = datetime.now(timezone.utc) + expires_delta
     else:
@@ -115,7 +115,7 @@ def verify_refresh_token(token: str, db: Session = Depends(get_db)):
         token_data = Payload(**payload)
         user_id = int(token_data.sub)
 
-        if datetime.fromtimestamp(token_data.exp) < datetime.now():
+        if datetime.fromtimestamp(token_data.exp, tz=timezone.utc) < datetime.now(timezone.utc):
             raise HTTPException(
                 status_code=401,
                 detail="Refresh token expired",
@@ -160,7 +160,8 @@ def refresh_access_token(refresh_token: str, db: Session = Depends(get_db)):
                     new_refresh_token,
                     REFRESH_SECRET_KEY,
                     algorithms=[REFRESH_ALGORITHM],
-                )["exp"]
+                )["exp"],
+                tz=timezone.utc,
             ),
         )
     )

@@ -187,7 +187,7 @@ class TestUpdateRecurTask:
     def test_update_recur_task_days(
         self, create_recur_tasks: None, token: dict[str, str], client: TestClient
     ):
-        original_task = client.get("/api/recur-tasks/1", headers=token).json()
+        client.get("/api/recur-tasks/1", headers=token).json()
 
         new_days = ["mon", "wed", "fri"]
         resp = client.put(
