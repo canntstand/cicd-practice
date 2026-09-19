@@ -19,9 +19,10 @@ services:
       postgres -c listen_addresses='*'
 
   backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE:-ghcr.io/canntstand/cicd-practice-backend:latest}
+    # build:
+    #   context: backend
+    #   dockerfile: Dockerfile
     networks:
       - backend
     volumes:
