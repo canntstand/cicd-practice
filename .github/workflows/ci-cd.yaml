@@ -145,11 +145,16 @@ jobs:
           script: |
             set -e
 
+            if ! command -v git &> /dev/null; then
+              sudo apt-get update && sudo apt-get install -y git
+            fi
+
             if [ ! -d /opt/cicd-practice ]; then
               git clone https://github.com/canntstand/cicd-practice.git /opt/cicd-practice
             else
               cd /opt/cicd-practice
-              git pull origin main
+              git fetch origin main
+              git reset --hard origin/main
             fi
 
             cd /opt/cicd-practice
